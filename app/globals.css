@@ -1,0 +1,314 @@
+@tailwind base;
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================
+   VYXO CONSULT CENTRALHUB - DESIGN SYSTEM
+   Brand: Navy (#0F2339) & Gold (#C69C6D)
+   Aesthetic: Premium, Modern, Bento Grid
+   ===================================================== */
+
+@layer base {
+  :root {
+    /* ===== VYXO BRAND COLORS (HSL) ===== */
+    --vyxo-navy: 214 58% 13%; /* #0F2339 */
+    --vyxo-gold: 32 43% 60%; /* #C69C6D */
+
+    /* ===== LIGHT MODE ===== */
+    --background: 0 0% 100%; /* White */
+    --foreground: 214 58% 13%; /* Vyxo Navy for text */
+
+    --card: 0 0% 100%;
+    --card-foreground: 214 58% 13%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 214 58% 13%;
+
+    --primary: 214 58% 13%; /* Vyxo Navy */
+    --primary-foreground: 0 0% 100%; /* White text on navy */
+
+    --secondary: 210 40% 96.1%; /* Slate-50 */
+    --secondary-foreground: 214 58% 13%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 32 43% 60%; /* Vyxo Gold */
+    --accent-foreground: 214 58% 13%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 214 58% 13%; /* Vyxo Navy */
+
+    --radius: 1rem; /* Large rounded corners */
+
+    /* ===== CUSTOM VYXO TOKENS ===== */
+    --vyxo-gradient-navy: linear-gradient(135deg, hsl(214, 58%, 13%) 0%, hsl(214, 58%, 23%) 100%);
+    --vyxo-gradient-gold: linear-gradient(135deg, hsl(32, 43%, 60%) 0%, hsl(32, 43%, 70%) 100%);
+    --vyxo-gradient-premium: linear-gradient(135deg, hsl(214, 58%, 13%) 0%, hsl(32, 43%, 60%) 100%);
+
+    /* Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  }
+
+  .dark {
+    /* ===== DARK MODE ===== */
+    --background: 0 0% 3.9%; /* Deep Charcoal #0A0A0A */
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 7%; /* Slightly lighter #121212 */
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 32 43% 60%; /* Vyxo Gold in dark mode */
+    --primary-foreground: 214 58% 13%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 32 43% 60%; /* Vyxo Gold */
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 32 43% 60%; /* Vyxo Gold */
+
+    /* ===== DARK MODE CUSTOM TOKENS ===== */
+    --glass-bg: rgba(18, 18, 18, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-secondary;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer utilities {
+  /* ===== VYXO BRAND UTILITIES ===== */
+  .bg-vyxo-navy {
+    background-color: hsl(var(--vyxo-navy));
+  }
+
+  .bg-vyxo-gold {
+    background-color: hsl(var(--vyxo-gold));
+  }
+
+  .text-vyxo-navy {
+    color: hsl(var(--vyxo-navy));
+  }
+
+  .text-vyxo-gold {
+    color: hsl(var(--vyxo-gold));
+  }
+
+  .border-vyxo-gold {
+    border-color: hsl(var(--vyxo-gold));
+  }
+
+  .border-vyxo-navy {
+    border-color: hsl(var(--vyxo-navy));
+  }
+
+  /* ===== GRADIENTS ===== */
+  .gradient-navy {
+    background: var(--vyxo-gradient-navy);
+  }
+
+  .gradient-gold {
+    background: var(--vyxo-gradient-gold);
+  }
+
+  .gradient-premium {
+    background: var(--vyxo-gradient-premium);
+  }
+
+  /* ===== GLASSMORPHISM ===== */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-strong {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* ===== BENTO GRID CARDS ===== */
+  .bento-card {
+    border-radius: 1rem;
+    @apply bg-card border border-border p-6 transition-all duration-300;
+    @apply hover:shadow-lg hover:border-accent/50;
+  }
+
+  .bento-card-navy {
+    @apply bento-card bg-vyxo-navy text-white;
+  }
+
+  .bento-card-gold {
+    @apply bento-card border-vyxo-gold/30 hover:border-vyxo-gold;
+  }
+
+  /* ===== ANIMATIONS ===== */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* ===== PREMIUM EFFECTS ===== */
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(198, 156, 109, 0.3);
+  }
+
+  .glow-navy {
+    box-shadow: 0 0 20px rgba(15, 35, 57, 0.3);
+  }
+
+  /* ===== RESPONSIVE UTILITIES ===== */
+  .container-vyxo {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* ===== TEXT UTILITIES ===== */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* ===== STAT CARDS ===== */
+  .stat-card {
+    @apply bento-card flex flex-col gap-2;
+  }
+
+  .stat-value {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .stat-label {
+    @apply text-sm text-muted-foreground uppercase tracking-wide;
+  }
+
+  .stat-change-positive {
+    @apply text-green-600 dark:text-green-400 text-sm font-medium;
+  }
+
+  .stat-change-negative {
+    @apply text-red-600 dark:text-red-400 text-sm font-medium;
+  }
+}
+
+/* ===== FRAMER MOTION TRANSITIONS ===== */
+.page-transition {
+  animation: pageTransition 0.3s ease-in-out;
+}
+
+@keyframes pageTransition {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
