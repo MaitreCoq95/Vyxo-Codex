@@ -149,16 +149,19 @@ export default function DirectorDashboardPage() {
           iconColor="primary"
           gradient
         >
-          <IMOGauge 
-            score={company?.imo_score || 68}
-            level={company?.imo_level || 'Opérationnel - Fragile'}
-            components={{
-              competences: 72,
-              regularite: 81,
-              pratique: 58,
-              incidents: 62,
+          <IMOGauge
+            imo={{
+              globalScore: company?.imo_score || 68,
+              level: company?.imo_level || 'Opérationnel',
+              components: {
+                competences: 72,
+                regularite: 81,
+                pratique: 58,
+                incidents: 62,
+              },
+              trend: 5,
+              calculatedAt: new Date(),
             }}
-            trend={5}
           />
         </EnhancedBentoCard>
 
