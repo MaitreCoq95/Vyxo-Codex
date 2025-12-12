@@ -1,16 +1,29 @@
 import { generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
+import { withErrorHandling, ApiError } from '@/lib/api/error-handler';
+import { withRateLimit, RateLimitPresets } from '@/lib/api/rate-limit';
+import { z } from 'zod';
 
-export async function POST(req: Request) {
-  try {
-    const { moduleId, moduleName, count = 5, difficulty = 'medium' } = await req.json();
+const GenerateQuestionsSchema = z.object({
+  moduleId: z.string().min(1),
+  moduleName: z.string().min(1),
+  count: z.number().int().min(1).max(20).default(5),
+  difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
+});
 
-    // Vérifier la clé API
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      console.error('❌ OPENAI_API_KEY is missing');
-      return Response.json({ error: 'Server configuration error: API Key missing' }, { status: 500 });
-    }
+export const POST = withRateLimit(
+  withErrorHandling(async (req: Request) => {
+    const body = await req.json();
+
+  // Valider avec Zod
+  const { moduleId, moduleName, count, difficulty } = GenerateQuestionsSchema.parse(body);
+
+  // Vérifier la clé API
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    console.error('❌ OPENAI_API_KEY is missing');
+    throw new ApiError(500, 'Server configuration error: API Key missing', 'CONFIG_ERROR');
+  }
 
     const prompt = `
 Tu es un expert certifié en systèmes de management, normes ISO, GDP, GMP, CEIV, et excellence opérationnelle.
@@ -86,36 +99,44 @@ RETOURNE UN JSON EXACTEMENT DANS CE FORMAT :
 IMPORTANT : Les questions doivent refléter le contenu RÉEL des normes, pas des généralités.
 `;
 
-    const { text } = await generateText({
-      model: openai('gpt-4o'),
-      prompt: prompt,
-    });
+  const { text } = await generateText({
+    model: openai('gpt-4o'),
+    prompt: prompt,
+  });
 
-    // Parse la réponse JSON
-    let jsonResponse;
-    try {
-      const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      jsonResponse = JSON.parse(cleanText);
-    } catch (e) {
-      console.error('Failed to parse AI JSON response:', text);
-      return Response.json({ error: 'Failed to parse AI response', raw: text }, { status: 500 });
-    }
+  // Parse la réponse JSON
+  let jsonResponse;
+  try {
+    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    jsonResponse = JSON.parse(cleanText);
+  } catch (e) {
+    console.error('Failed to parse AI JSON response:', text);
+    throw new ApiError(
+      500,
+      'Failed to parse AI response - response was not valid JSON',
+      'AI_PARSE_ERROR',
+      { rawResponse: text.substring(0, 200) }
+    );
+  }
 
-    // Ajouter moduleId à chaque question
-    if (jsonResponse.questions && Array.isArray(jsonResponse.questions)) {
-      jsonResponse.questions = jsonResponse.questions.map((q: any, index: number) => ({
-        id: `ai-${moduleId}-${Date.now()}-${index}`,
-        moduleId: moduleId,
-        ...q
-      }));
-    }
+  // Valider la structure de la réponse
+  if (!jsonResponse.questions || !Array.isArray(jsonResponse.questions)) {
+    throw new ApiError(
+      500,
+      'AI response missing questions array',
+      'AI_INVALID_STRUCTURE',
+      { response: jsonResponse }
+    );
+  }
+
+  // Ajouter moduleId à chaque question
+  jsonResponse.questions = jsonResponse.questions.map((q: any, index: number) => ({
+    id: `ai-${moduleId}-${Date.now()}-${index}`,
+    moduleId: moduleId,
+    ...q
+  }));
 
     return Response.json(jsonResponse);
-  } catch (error: any) {
-    console.error('💥 AI Quiz Generation Error:', error);
-    return Response.json({
-      error: error.message || 'Failed to generate quiz questions',
-      details: error.toString()
-    }, { status: 500 });
-  }
-}
+  }),
+  RateLimitPresets.ai // 5 requêtes max par minute
+);

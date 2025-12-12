@@ -3,6 +3,13 @@ import { getAllModules } from '@/domain/codex/modules';
 import { getAllItems } from '@/domain/codex/items';
 import { getAllQuestions } from '@/domain/codex/all-questions';
 import { AISearchRequest, AISearchResult, KnowledgeItem, KnowledgeModule, QuizQuestion } from '@/domain/types/codex';
+import { withErrorHandling, ValidationError } from '@/lib/api/error-handler';
+import { z } from 'zod';
+
+const SearchRequestSchema = z.object({
+  query: z.string().min(3, 'La requête doit contenir au moins 3 caractères').max(500),
+  moduleIds: z.array(z.string()).optional(),
+});
 
 /**
  * Endpoint de recherche IA dans le Codex
@@ -14,58 +21,45 @@ import { AISearchRequest, AISearchResult, KnowledgeItem, KnowledgeModule, QuizQu
  * - Les modules liés
  * - Des questions de quiz suggérées
  */
-export async function POST(request: NextRequest) {
-  try {
-    const body: AISearchRequest = await request.json();
-    const { query, moduleIds } = body;
+export const POST = withErrorHandling(async (request: NextRequest) => {
+  const body = await request.json();
 
-    if (!query || query.trim().length < 3) {
-      return NextResponse.json(
-        { error: 'La requête doit contenir au moins 3 caractères' },
-        { status: 400 }
-      );
-    }
+  // Valider la requête avec Zod
+  const validatedData = SearchRequestSchema.parse(body);
+  const { query, moduleIds } = validatedData;
 
-    // Charger toutes les données
-    const allModules = getAllModules();
-    const allItems = getAllItems();
-    const allQuestions = await getAllQuestions();
+  // Charger toutes les données
+  const allModules = getAllModules();
+  const allItems = getAllItems();
+  const allQuestions = await getAllQuestions();
 
-    // Filtrer par modules si spécifié
-    const modules = moduleIds && moduleIds.length > 0
-      ? allModules.filter(m => moduleIds.includes(m.id))
-      : allModules;
+  // Filtrer par modules si spécifié
+  const modules = moduleIds && moduleIds.length > 0
+    ? allModules.filter(m => moduleIds.includes(m.id))
+    : allModules;
 
-    const items = moduleIds && moduleIds.length > 0
-      ? allItems.filter(item => moduleIds.includes(item.moduleId))
-      : allItems;
+  const items = moduleIds && moduleIds.length > 0
+    ? allItems.filter(item => moduleIds.includes(item.moduleId))
+    : allItems;
 
-    const questions = moduleIds && moduleIds.length > 0
-      ? allQuestions.filter(q => moduleIds.includes(q.moduleId))
-      : allQuestions;
+  const questions = moduleIds && moduleIds.length > 0
+    ? allQuestions.filter(q => moduleIds.includes(q.moduleId))
+    : allQuestions;
 
-    // Effectuer la recherche
-    const searchResults = performSearch(query.toLowerCase(), modules, items, questions);
+  // Effectuer la recherche
+  const searchResults = performSearch(query.toLowerCase(), modules, items, questions);
 
-    // Générer la réponse
-    const result: AISearchResult = {
-      answerSummary: generateAnswerSummary(query, searchResults),
-      relatedItems: searchResults.items.slice(0, 10), // Top 10
-      relatedModules: searchResults.modules.slice(0, 5), // Top 5
-      suggestedQuiz: searchResults.questions.slice(0, 5), // Top 5
-      sources: searchResults.sources,
-    };
+  // Générer la réponse
+  const result: AISearchResult = {
+    answerSummary: generateAnswerSummary(query, searchResults),
+    relatedItems: searchResults.items.slice(0, 10), // Top 10
+    relatedModules: searchResults.modules.slice(0, 5), // Top 5
+    suggestedQuiz: searchResults.questions.slice(0, 5), // Top 5
+    sources: searchResults.sources,
+  };
 
-    return NextResponse.json(result);
-
-  } catch (error: any) {
-    console.error('Erreur dans /api/codex/ask:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de la recherche', details: error.message },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json(result);
+});
 
 /**
  * Calcule un score de pertinence pour une chaîne donnée
