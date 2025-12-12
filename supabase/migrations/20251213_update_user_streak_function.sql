@@ -46,6 +46,10 @@ BEGIN
       ON CONFLICT DO NOTHING;
     ELSIF v_new_streak = 100 THEN
       v_message := '👑 100 jours ! LÉGENDE !';
+      -- Attribuer badge streak-100
+      INSERT INTO badge_awards (user_id, badge_id)
+      VALUES (p_user_id, 'streak-100')
+      ON CONFLICT DO NOTHING;
     ELSE
       v_message := format('🔥 %s jours de série !', v_new_streak);
     END IF;

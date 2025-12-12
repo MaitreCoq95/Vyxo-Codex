@@ -95,8 +95,34 @@ Format JSON strict :
         });
         
         const anthropicData = await anthropicResponse.json();
-        const challengeData = JSON.parse(anthropicData.content[0].text);
-        
+
+        // Validation de la réponse Anthropic
+        if (!anthropicData?.content?.[0]?.text) {
+          console.error('Invalid Anthropic response:', anthropicData);
+          results.push({ user: user.id, status: 'error', error: 'Invalid AI response' });
+          continue;
+        }
+
+        // Parse avec gestion d'erreur
+        let challengeData;
+        try {
+          challengeData = JSON.parse(anthropicData.content[0].text);
+
+          // Validation de la structure
+          if (!challengeData.type || !challengeData.question || !challengeData.options) {
+            throw new Error('Missing required fields in AI response');
+          }
+
+          // Valider qu'il y a bien 4 options
+          if (!Array.isArray(challengeData.options) || challengeData.options.length !== 4) {
+            throw new Error('Invalid options structure');
+          }
+        } catch (parseError) {
+          console.error('Failed to parse AI response:', parseError);
+          results.push({ user: user.id, status: 'error', error: 'Failed to parse AI response' });
+          continue;
+        }
+
         // Stocker le challenge
         const { error: insertError } = await supabase
           .from('daily_challenges')
