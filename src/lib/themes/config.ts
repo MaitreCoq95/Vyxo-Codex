@@ -21,6 +21,7 @@ export const themes = {
     },
     gradients: {
       primary: 'from-cyan-500 to-indigo-500',
+      secondary: 'from-indigo-500 to-purple-500',
       success: 'from-emerald-500 to-teal-500',
       warning: 'from-amber-500 to-orange-500',
       danger: 'from-rose-500 to-red-500',
@@ -54,6 +55,7 @@ export const themes = {
     },
     gradients: {
       primary: 'from-cyan-400 to-indigo-400',
+      secondary: 'from-indigo-400 to-purple-400',
       success: 'from-emerald-400 to-teal-400',
       warning: 'from-amber-400 to-orange-400',
       danger: 'from-rose-400 to-red-400',
@@ -87,6 +89,7 @@ export const themes = {
     },
     gradients: {
       primary: 'from-cyan-600 via-cyan-500 to-indigo-500',
+      secondary: 'from-indigo-600 to-purple-600',
       success: 'from-emerald-600 to-teal-600',
       warning: 'from-amber-600 to-orange-600',
       danger: 'from-rose-600 to-red-600',
@@ -120,6 +123,7 @@ export const themes = {
     },
     gradients: {
       primary: 'from-indigo-500 to-cyan-500',
+      secondary: 'from-cyan-500 to-blue-500',
       success: 'from-emerald-500 to-teal-500',
       warning: 'from-amber-500 to-rose-500',
       danger: 'from-rose-500 to-red-600',
@@ -153,6 +157,7 @@ export const themes = {
     },
     gradients: {
       primary: 'from-slate-700 via-indigo-600 to-cyan-600',
+      secondary: 'from-cyan-600 to-blue-600',
       success: 'from-emerald-600 to-teal-600',
       warning: 'from-amber-600 to-orange-600',
       danger: 'from-rose-600 to-red-600',
