@@ -50,14 +50,34 @@
     --radius: 1rem; /* Large rounded corners */
 
     /* ===== CUSTOM VYXO TOKENS ===== */
-    --vyxo-gradient-navy: linear-gradient(135deg, hsl(214, 58%, 13%) 0%, hsl(214, 58%, 23%) 100%);
-    --vyxo-gradient-gold: linear-gradient(135deg, hsl(32, 43%, 60%) 0%, hsl(32, 43%, 70%) 100%);
-    --vyxo-gradient-premium: linear-gradient(135deg, hsl(214, 58%, 13%) 0%, hsl(32, 43%, 60%) 100%);
+    --vyxo-gradient-navy: linear-gradient(
+      135deg,
+      hsl(214, 58%, 13%) 0%,
+      hsl(214, 58%, 23%) 100%
+    );
+    --vyxo-gradient-gold: linear-gradient(
+      135deg,
+      hsl(32, 43%, 60%) 0%,
+      hsl(32, 43%, 70%) 100%
+    );
+    --vyxo-gradient-premium: linear-gradient(
+      135deg,
+      hsl(214, 58%, 13%) 0%,
+      hsl(32, 43%, 60%) 100%
+    );
 
     /* Glassmorphism */
     --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(255, 255, 255, 0.18);
     --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+
+    /* ===== MAGIC BENTO SYSTEM TOKENS ===== */
+    --vx-bg: #020617;
+    --vx-card-bg: #020617;
+    --vx-border-color: #1f2937;
+    --vx-text: #e5e7eb;
+    --vx-indigo: rgba(94, 92, 255, 1);
+    --vx-indigo-glow: rgba(94, 92, 255, 0.22);
   }
 
   .dark {
@@ -105,7 +125,8 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+      "Roboto", sans-serif;
   }
 
   /* Smooth scrolling */

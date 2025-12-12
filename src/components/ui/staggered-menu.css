@@ -1,0 +1,49 @@
+/* src/components/ui/staggered-menu.css */
+
+.staggered-menu-closed-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 1rem;
+  background-color: var(--vx-card-bg);
+  border: 1px solid var(--vx-border-color);
+  overflow: hidden;
+  transition: border-color 0.3s ease;
+  cursor: pointer;
+}
+
+.staggered-menu-closed-card:hover {
+  border-color: var(--vx-indigo);
+}
+
+/* Dotted Grid Background */
+.staggered-menu-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Typography for the "Menu +" text */
+.staggered-menu-trigger-text {
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+}
+
+/* Open Panel Styling */
+.staggered-menu-panel {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  /* Ensure it sits above everything */
+  z-index: 100;
+}
+
+/* Navigation Item Numbering */
+.staggered-menu-item-number {
+  font-family: 'Courier New', Courier, monospace; /* Or a mono font */
+  font-weight: 700;
+}

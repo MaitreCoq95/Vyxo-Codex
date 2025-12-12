@@ -56,7 +56,12 @@ export async function loadQuestionsFromSupabase(): Promise<QuizQuestion[]> {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error loading questions:', error);
+      console.error('Error loading questions (Supabase):', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       return [];
     }
 
@@ -91,7 +96,12 @@ export async function loadQuestionsByModule(moduleId: string): Promise<QuizQuest
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error loading questions:', error);
+      console.error('Error loading questions (Supabase):', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       return [];
     }
 

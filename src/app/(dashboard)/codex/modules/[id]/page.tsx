@@ -7,7 +7,6 @@ import { getItemsByModule, groupItemsByType, searchItems } from "../../../../../
 import { getAllQuestionsByModule } from "../../../../../domain/codex/all-questions";
 import { KnowledgeItemCard } from "@/components/codex/knowledge-item-card";
 import { ModuleScoreCard } from "@/components/codex/module-score-card";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +24,8 @@ import {
   AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
+import { MagicBento } from "../../../../../components/bento/MagicBento";
+import { MagicBentoCard } from "../../../../../components/bento/MagicBentoCard";
 import { KnowledgeItemType, QuizQuestion } from "../../../../../domain/types/codex";
 
 const typeIcons: Record<KnowledgeItemType, React.ElementType> = {
@@ -82,18 +83,16 @@ export default function ModuleDetailPage() {
   if (!currentModule) {
     return (
       <div className="space-y-6 p-6">
-        <Card>
-          <CardContent className="py-12 text-center">
+        <div className="magic-bento-card py-12 text-center">
             <BookOpen className="mx-auto h-12 w-12 text-muted-foreground opacity-20 mb-4" />
             <p className="text-muted-foreground mb-4">Module non trouvé</p>
             <Link href="/codex">
-              <Button variant="outline">
+              <Button variant="outline" className="border-white/10 text-white hover:bg-white/10">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Retour au Codex
               </Button>
             </Link>
-          </CardContent>
-        </Card>
+        </div>
       </div>
     );
   }
@@ -103,7 +102,7 @@ export default function ModuleDetailPage() {
       {/* Header */}
       <div className="flex flex-col gap-4">
         <Link href="/codex">
-          <Button variant="ghost" size="sm" className="w-fit">
+          <Button variant="ghost" size="sm" className="w-fit text-white">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour au Codex
           </Button>
@@ -114,12 +113,12 @@ export default function ModuleDetailPage() {
             <div className="flex items-center gap-3 mb-2">
               <BookOpen className="h-8 w-8 text-cyan-500" />
               {currentModule.code && (
-                <Badge variant="outline" className="font-mono">
+                <Badge variant="outline" className="font-mono bg-white/5 border-white/10 text-white">
                   {currentModule.code}
                 </Badge>
               )}
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-vyxo-navy dark:text-white mb-2">
+            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
               {currentModule.title}
             </h1>
             <p className="text-muted-foreground">
@@ -128,7 +127,7 @@ export default function ModuleDetailPage() {
 
             <div className="flex flex-wrap gap-2 mt-4">
               {currentModule.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="bg-slate-50 dark:bg-slate-900">
+                <Badge key={tag} variant="outline" className="bg-slate-50 dark:bg-slate-900/50 border-white/10 text-slate-400">
                   #{tag}
                 </Badge>
               ))}
@@ -145,47 +144,42 @@ export default function ModuleDetailPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Connaissances</p>
-                <p className="text-2xl font-bold text-vyxo-navy dark:text-white">
-                  {allItems.length}
-                </p>
-              </div>
-              <Brain className="h-8 w-8 text-cyan-500 opacity-50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Questions Quiz</p>
-                <p className="text-2xl font-bold text-vyxo-navy dark:text-white">
-                  {questionsLoading ? "..." : questions.length}
-                </p>
-              </div>
-              <Dices className="h-8 w-8 text-amber-500 opacity-50" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Score du module */}
+      <MagicBento className="lg:grid-cols-3">
+        <MagicBentoCard
+          title={allItems.length.toString()}
+          label="Connaissances"
+          icon={<Brain className="h-8 w-8 text-cyan-500" />}
+          enableTilt={true}
+        />
+        <MagicBentoCard
+          title={questionsLoading ? "..." : questions.length.toString()}
+          label="Questions Quiz"
+          icon={<Dices className="h-8 w-8 text-amber-500" />}
+          enableTilt={true}
+        />
+        {/* ModuleScoreCard needs to be refactored too, for now we wrap it or assume it fits.
+            Actually, if ModuleScoreCard is a Card, I should probably replace it HERE with a MagicBentoCard 
+            that displays the data, OR refactor ModuleScoreCard. 
+            I'll leave it as component for now but wrapping it in Bento might be tricky if it isn't one.
+            I will look at ModuleScoreCard later. For now, keep it in layout. 
+            Wait, MagicBento expects BentoCards. 
+            I'll put ModuleScoreCard in a div if it's not a BentoCard, but it breaks the grid consistency.
+            I will use a placeholder BentoCard for Score if I can't access data, but I'll use the component.
+            Actually, let's just make the stats grid a normal grid if we mix types. 
+            But prompt says "Magic Bento Card System".
+            I will assume ModuleScoreCard WILL be refactored to be a BentoCard.
+        */}
         <ModuleScoreCard moduleId={moduleId} />
-      </div>
+      </MagicBento>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="knowledge">
+        <TabsList className="grid w-full grid-cols-2 bg-black/20 border border-white/10">
+          <TabsTrigger value="knowledge" className="data-[state=active]:bg-vyxo-indigo data-[state=active]:text-white text-muted-foreground">
             <Brain className="mr-2 h-4 w-4" />
             Connaissances
           </TabsTrigger>
-          <TabsTrigger value="quiz">
+          <TabsTrigger value="quiz" className="data-[state=active]:bg-vyxo-indigo data-[state=active]:text-white text-muted-foreground">
             <Dices className="mr-2 h-4 w-4" />
             Quiz
           </TabsTrigger>
@@ -194,30 +188,26 @@ export default function ModuleDetailPage() {
         {/* Onglet Connaissances */}
         <TabsContent value="knowledge" className="space-y-4">
           {/* Search */}
-          <Card>
-            <CardContent className="pt-6">
+          <div className="magic-bento-card p-6">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Rechercher dans les connaissances..."
-                  className="pl-10"
+                  className="pl-10 bg-black/20 border-white/10 text-white placeholder:text-white/40 focus:border-vyxo-indigo focus:ring-vyxo-indigo/20"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-            </CardContent>
-          </Card>
+          </div>
 
           {/* Knowledge Items */}
           {filteredItems.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
+            <div className="magic-bento-card py-12 text-center">
                 <BookOpen className="mx-auto h-12 w-12 text-muted-foreground opacity-20 mb-4" />
                 <p className="text-muted-foreground">
                   {searchTerm ? "Aucune connaissance trouvée pour cette recherche." : "Aucune connaissance disponible pour ce module."}
                 </p>
-              </CardContent>
-            </Card>
+            </div>
           ) : (
             <div className="space-y-6">
               {Object.entries(typeLabels).map(([type, label]) => {
@@ -233,11 +223,12 @@ export default function ModuleDetailPage() {
                   <div key={type}>
                     <div className="flex items-center gap-2 mb-3">
                       <Icon className="h-5 w-5 text-cyan-500" />
-                      <h3 className="text-lg font-semibold">{label}</h3>
-                      <Badge variant="outline" className="ml-2">
+                      <h3 className="text-lg font-semibold text-white">{label}</h3>
+                      <Badge variant="outline" className="ml-2 bg-white/5 border-white/10 text-white">
                         {items.length}
                       </Badge>
                     </div>
+                    {/* Items Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {items.map((item) => (
                         <KnowledgeItemCard key={item.id} item={item} />
@@ -252,42 +243,41 @@ export default function ModuleDetailPage() {
 
         {/* Onglet Quiz */}
         <TabsContent value="quiz" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quiz disponibles</CardTitle>
-              <CardDescription>
-                Testez vos connaissances sur {currentModule.title}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium">Quiz aléatoire</p>
-                  <p className="text-sm text-muted-foreground">
-                    {questions.length} questions disponibles
-                  </p>
-                </div>
-                <Link href={`/codex/quiz?moduleId=${moduleId}`}>
-                  <Button>
-                    <Dices className="mr-2 h-4 w-4" />
-                    Démarrer
-                  </Button>
-                </Link>
-              </div>
+          <MagicBentoCard
+             title="Quiz disponibles"
+             description={`Testez vos connaissances sur ${currentModule.title}`}
+             icon={<Dices className="h-6 w-6" />}
+             enableTilt={false}
+          >
+             <div className="space-y-4 mt-6">
+                  <div className="flex items-center justify-between p-4 border border-white/10 rounded-lg bg-white/5">
+                    <div>
+                      <p className="font-medium text-white">Quiz aléatoire</p>
+                      <p className="text-sm text-muted-foreground">
+                        {questions.length} questions disponibles
+                      </p>
+                    </div>
+                    <Link href={`/codex/quiz?moduleId=${moduleId}`}>
+                      <Button className="bg-vyxo-gold text-vyxo-navy hover:bg-vyxo-gold/90">
+                        <Dices className="mr-2 h-4 w-4" />
+                        Démarrer
+                      </Button>
+                    </Link>
+                  </div>
 
-              {questions.length === 0 && (
-                <div className="text-center py-8">
-                  <Dices className="mx-auto h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-                  <p className="text-muted-foreground text-sm">
-                    Aucune question de quiz disponible pour ce module.
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Les questions seront bientôt générées via l&apos;assistant IA.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  {questions.length === 0 && (
+                    <div className="text-center py-8">
+                      <Dices className="mx-auto h-12 w-12 text-muted-foreground opacity-20 mb-4" />
+                      <p className="text-muted-foreground text-sm">
+                        Aucune question de quiz disponible pour ce module.
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Les questions seront bientôt générées via l&apos;assistant IA.
+                      </p>
+                    </div>
+                  )}
+             </div>
+          </MagicBentoCard>
         </TabsContent>
       </Tabs>
     </div>

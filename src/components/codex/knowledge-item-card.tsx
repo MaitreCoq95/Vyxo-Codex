@@ -1,6 +1,6 @@
 import { KnowledgeItem } from "@/domain/types/codex";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { MagicBentoCard } from "@/components/bento/MagicBentoCard";
 import {
   FileText,
   CheckSquare,
@@ -16,30 +16,32 @@ interface KnowledgeItemCardProps {
 const getTypeIcon = (type: KnowledgeItem['type']) => {
   switch (type) {
     case 'concept':
-      return <Lightbulb className="h-4 w-4" />;
+      return <Lightbulb className="h-6 w-6" />; // Increased size for Bento
     case 'requirement':
-      return <FileText className="h-4 w-4" />;
+      return <FileText className="h-6 w-6" />;
     case 'checklist':
-      return <CheckSquare className="h-4 w-4" />;
+      return <CheckSquare className="h-6 w-6" />;
     case 'tool':
-      return <Wrench className="h-4 w-4" />;
+      return <Wrench className="h-6 w-6" />;
     case 'risk':
-      return <AlertTriangle className="h-4 w-4" />;
+      return <AlertTriangle className="h-6 w-6" />;
   }
 };
 
 const getTypeColor = (type: KnowledgeItem['type']) => {
   switch (type) {
     case 'concept':
-      return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
+      return '#3b82f6'; // blue-500
     case 'requirement':
-      return 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300';
+      return '#a855f7'; // purple-500
     case 'checklist':
-      return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
+      return '#22c55e'; // green-500
     case 'tool':
-      return 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300';
+      return '#f59e0b'; // amber-500
     case 'risk':
-      return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
+      return '#ef4444'; // red-500
+    default:
+      return '#94a3b8'; // slate-400
   }
 };
 
@@ -59,38 +61,39 @@ const getTypeLabel = (type: KnowledgeItem['type']) => {
 };
 
 export function KnowledgeItemCard({ item }: KnowledgeItemCardProps) {
-  return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-base font-semibold flex-1">
-            {item.topic}
-          </CardTitle>
-          <Badge className={`${getTypeColor(item.type)} flex items-center gap-1`}>
-            {getTypeIcon(item.type)}
-            <span className="text-xs">{getTypeLabel(item.type)}</span>
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">
-          {item.body}
-        </p>
+  const color = getTypeColor(item.type);
+  const icon = getTypeIcon(item.type);
+  const label = getTypeLabel(item.type);
 
-        {item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 pt-2 border-t border-slate-200 dark:border-slate-800">
-            {item.tags.map((tag) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className="text-xs bg-slate-50 dark:bg-slate-900"
-              >
-                #{tag}
-              </Badge>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+  return (
+    <div className="h-full">
+      <MagicBentoCard
+        title={item.topic}
+        label={label}
+        icon={icon}
+        color={color}
+        enableTilt={true}
+      >
+        <div className="mt-4 space-y-3">
+          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">
+            {item.body}
+          </p>
+
+          {item.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 pt-2 border-t border-white/10">
+              {item.tags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="outline"
+                  className="text-[10px] bg-white/5 border-white/10 text-slate-400"
+                >
+                  #{tag}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+      </MagicBentoCard>
+    </div>
   );
 }
