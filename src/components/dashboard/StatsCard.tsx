@@ -11,7 +11,7 @@ interface StatsCardProps {
     value: number;
     label: string;
   };
-  color?: 'primary' | 'success' | 'warning' | 'danger';
+  color?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
   className?: string;
 }
 
@@ -25,6 +25,7 @@ export function StatsCard({
 }: StatsCardProps) {
   const colorClasses = {
     primary: 'text-primary bg-primary/10',
+    secondary: 'text-secondary bg-secondary/10',
     success: 'text-success bg-success/10',
     warning: 'text-warning bg-warning/10',
     danger: 'text-danger bg-danger/10',
