@@ -90,7 +90,28 @@ Génère un briefing de 2 minutes pour un manager d'équipe, basé sur ces donn�
       });
       
       const anthropicData = await anthropicResponse.json();
-      const flashContent = JSON.parse(anthropicData.content[0].text);
+
+      // Validation de la réponse Anthropic
+      if (!anthropicData?.content?.[0]?.text) {
+        console.error('Invalid Anthropic response:', anthropicData);
+        results.push({ team: team.name, status: 'error', error: 'Invalid AI response' });
+        continue;
+      }
+
+      // Parse avec gestion d'erreur
+      let flashContent;
+      try {
+        flashContent = JSON.parse(anthropicData.content[0].text);
+
+        // Validation de la structure
+        if (!flashContent.titre || !flashContent.hook || !flashContent.exercice_pratique) {
+          throw new Error('Missing required fields in AI response');
+        }
+      } catch (parseError) {
+        console.error('Failed to parse AI response:', parseError);
+        results.push({ team: team.name, status: 'error', error: 'Failed to parse AI response' });
+        continue;
+      }
       
       // Stocker le flash
       const { error: insertError } = await supabase

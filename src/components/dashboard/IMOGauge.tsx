@@ -47,6 +47,13 @@ export function IMOGauge({ imo }: { imo: IMOScore }) {
     if (imo.level === 'Fragile') return 'from-orange-500 to-amber-600';
     return 'from-red-500 to-rose-600';
   };
+
+  const getLevelColorValues = () => {
+    if (imo.level === 'Excellence') return { start: '#22c55e', end: '#059669' }; // green-500, emerald-600
+    if (imo.level === 'Opérationnel') return { start: '#3b82f6', end: '#0891b2' }; // blue-500, cyan-600
+    if (imo.level === 'Fragile') return { start: '#f97316', end: '#d97706' }; // orange-500, amber-600
+    return { start: '#ef4444', end: '#e11d48' }; // red-500, rose-600
+  };
   
   const getLevelIcon = () => {
     if (imo.level === 'Excellence') return '🏆';
@@ -93,8 +100,8 @@ export function IMOGauge({ imo }: { imo: IMOScore }) {
                 />
                 <defs>
                   <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" className={`stop-color-${getLevelColor().split('-')[1]}-500`} />
-                    <stop offset="100%" className={`stop-color-${getLevelColor().split('-')[3]}-600`} />
+                    <stop offset="0%" stopColor={getLevelColorValues().start} />
+                    <stop offset="100%" stopColor={getLevelColorValues().end} />
                   </linearGradient>
                 </defs>
               </svg>
