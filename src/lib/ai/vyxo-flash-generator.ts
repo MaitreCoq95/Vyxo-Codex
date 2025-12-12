@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
+import { notifyVyxoFlashReady } from '@/lib/notifications/notification-service';
 
 interface VyxoFlash {
   id: string;
@@ -178,16 +179,23 @@ async function notifyManager(teamId: string, flash: VyxoFlash) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-  
+
   const { data: team } = await supabase
     .from('teams')
     .select('manager_id, name')
     .eq('id', teamId)
     .single();
-    
+
   if (!team?.manager_id) return;
-  
-  // TODO: Implémenter notification push/email
+
+  // Envoyer notification au manager
+  await notifyVyxoFlashReady(
+    team.manager_id,
+    team.name,
+    flash.titre,
+    ['in_app', 'push', 'email']
+  );
+
   console.log(`✅ Vyxo Flash généré pour équipe ${team.name} - Manager notifié`);
 }
 
