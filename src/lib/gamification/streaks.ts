@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { startOfDay, differenceInDays } from 'date-fns';
+import { notifyStreakMilestone, notifyStreakRisk } from '@/lib/notifications/notification-service';
 
 export async function updateUserStreak(userId: string) {
   const supabase = createClient(
@@ -84,8 +85,13 @@ export async function updateUserStreak(userId: string) {
     
   // Notification si pertinent
   if (shouldNotify && message) {
-    // TODO: Implémenter sendPushNotification
-    console.log(`📱 Notification pour ${userId}: ${message}`);
+    if (newStreak >= 7) {
+      // Milestone positif
+      await notifyStreakMilestone(userId, newStreak, ['in_app', 'push']);
+    } else {
+      // Série cassée
+      await notifyStreakRisk(userId, user?.current_streak || 0, ['in_app']);
+    }
   }
     
   return { streak: newStreak, message, badgeAwarded };
@@ -145,8 +151,8 @@ export async function alertStreakRisk() {
     .lt('last_activity_date', today.toISOString());
     
   for (const user of atRisk || []) {
-    // TODO: Implémenter sendPushNotification
-    console.log(`⚠️ Alerte streak pour ${user.full_name} (${user.current_streak} jours)`);
+    await notifyStreakRisk(user.id, user.current_streak, ['in_app', 'push']);
+    console.log(`⚠️ Alerte streak envoyée à ${user.full_name} (${user.current_streak} jours)`);
   }
   
   return atRisk || [];

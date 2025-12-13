@@ -1,0 +1,516 @@
+openapi: 3.0.3
+info:
+  title: Vyxo Codex 2.0 API
+  description: |
+    Comprehensive API for the Vyxo Codex gamified learning platform.
+
+    ## Authentication
+    All authenticated endpoints require a Bearer token from Supabase Auth.
+
+    ## Rate Limiting
+    API endpoints are rate-limited to prevent abuse. Limits vary by endpoint.
+
+    ## Errors
+    All errors follow a consistent JSON format with message, code, and optional details.
+  version: 1.0.0
+  contact:
+    name: Vyxo Codex Support
+    email: support@vyxo-codex.com
+  license:
+    name: Proprietary
+servers:
+  - url: https://vyxo-codex.vercel.app/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User authentication and session management
+  - name: Profile
+    description: User profile and settings
+  - name: Codex
+    description: Learning modules and content
+  - name: Challenges
+    description: Daily/weekly challenges and competitions
+  - name: Teams
+    description: Team management
+  - name: Analytics
+    description: Analytics and reporting (Director only)
+  - name: Notifications
+    description: Notification management
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase session token
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+            details:
+              type: object
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        full_name:
+          type: string
+        role:
+          type: string
+          enum: [operator, manager, director]
+        company_id:
+          type: string
+          format: uuid
+        avatar_url:
+          type: string
+          format: uri
+
+    Module:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        estimated_duration:
+          type: integer
+          description: Duration in minutes
+        xp_reward:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        completed:
+          type: boolean
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    Challenge:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [daily, weekly, special]
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        xp_reward:
+          type: integer
+        time_limit_minutes:
+          type: integer
+        status:
+          type: string
+          enum: [active, completed, expired]
+        expires_at:
+          type: string
+          format: date-time
+
+    QuizQuestion:
+      type: object
+      properties:
+        id:
+          type: string
+        module_id:
+          type: string
+        question:
+          type: string
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        choices:
+          type: array
+          items:
+            type: string
+          minItems: 4
+          maxItems: 4
+        correct_index:
+          type: integer
+          minimum: 0
+          maximum: 3
+        explanation:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and receive session token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                remember:
+                  type: boolean
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                      refresh_token:
+                        type: string
+                      expires_at:
+                        type: integer
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Too many login attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: User registration
+      description: Register a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - confirmPassword
+                - full_name
+                - company_name
+                - role
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                confirmPassword:
+                  type: string
+                full_name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                company_name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                role:
+                  type: string
+                  enum: [operator, manager, director]
+      responses:
+        '201':
+          description: Registration successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  message:
+                    type: string
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /codex/modules:
+    get:
+      tags:
+        - Codex
+      summary: List modules
+      description: Get list of available learning modules
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [easy, medium, hard]
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: completed
+          in: query
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  modules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Module'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /codex/modules/{id}:
+    get:
+      tags:
+        - Codex
+      summary: Get module
+      description: Get detailed information about a specific module
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Module'
+        '404':
+          description: Module not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /codex/generate-questions:
+    post:
+      tags:
+        - Codex
+      summary: Generate quiz questions
+      description: Use AI to generate quiz questions (Director only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - module_id
+                - topic
+                - difficulty
+                - count
+              properties:
+                module_id:
+                  type: string
+                  format: uuid
+                topic:
+                  type: string
+                difficulty:
+                  type: string
+                  enum: [easy, medium, hard]
+                count:
+                  type: integer
+                  minimum: 1
+                  maximum: 20
+                language:
+                  type: string
+                  default: fr
+      responses:
+        '200':
+          description: Questions generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  questions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuizQuestion'
+                  generated_count:
+                    type: integer
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /challenges:
+    get:
+      tags:
+        - Challenges
+      summary: List challenges
+      description: Get available challenges
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, completed, expired]
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [easy, medium, hard]
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly, special]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenges:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Challenge'
+                  total:
+                    type: integer
+
+  /challenges/{id}/start:
+    post:
+      tags:
+        - Challenges
+      summary: Start challenge
+      description: Enroll in a challenge
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Challenge started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  challenge_id:
+                    type: string
+                  started_at:
+                    type: string
+                    format: date-time
+        '400':
+          description: Already enrolled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
