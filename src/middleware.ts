@@ -1,39 +1,58 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { securityMiddleware, withSecurityHeaders, getCorsHeaders } from '@/lib/api/security'
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { securityMiddleware, withSecurityHeaders, getCorsHeaders } from '@/lib/api/security';
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
+  const res = NextResponse.next();
 
   // 1. Security checks
-  const securityCheck = await securityMiddleware(req)
+  const securityCheck = await securityMiddleware(req);
   if (!securityCheck.allowed) {
-    console.warn('🚨 Security check failed:', securityCheck.reason)
-    return new NextResponse('Forbidden', { status: 403 })
+    console.warn('🚨 Security check failed:', securityCheck.reason);
+    return new NextResponse('Forbidden', { status: 403 });
   }
 
   // 2. CORS headers for API routes
   if (req.nextUrl.pathname.startsWith('/api')) {
-    const origin = req.headers.get('origin')
-    const corsHeaders = getCorsHeaders(origin)
+    const origin = req.headers.get('origin');
+    const corsHeaders = getCorsHeaders(origin);
 
     Object.entries(corsHeaders).forEach(([key, value]) => {
-      res.headers.set(key, value)
-    })
+      res.headers.set(key, value);
+    });
 
     // Handle OPTIONS preflight
     if (req.method === 'OPTIONS') {
       return new NextResponse(null, {
         status: 204,
-        headers: corsHeaders as HeadersInit
-      })
+        headers: corsHeaders as HeadersInit,
+      });
     }
   }
 
   // 3. Supabase auth session refresh
-  const supabase = createMiddlewareClient({ req, res })
-  const { data: { session } } = await supabase.auth.getSession()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return req.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          req.cookies.set({ name, value, ...options });
+          res.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: CookieOptions) {
+          req.cookies.set({ name, value: '', ...options });
+          res.cookies.set({ name, value: '', ...options });
+        },
+      },
+    }
+  );
+
+  const { data: { session } } = await supabase.auth.getSession();
 
   // 4. Protected routes - redirect to login
   const protectedPaths = ['/dashboard', '/codex', '/challenge', '/director', '/manager']

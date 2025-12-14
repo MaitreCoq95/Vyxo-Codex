@@ -1,0 +1,400 @@
+/**
+ * Vyxo Codex - Global Styles
+ * Design Philosophy: Clarity over beauty. Structure over creativity.
+ */
+
+@import './tokens.css';
+
+/* ==========================================
+ * RESET & BASE STYLES
+ * ========================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  font-weight: var(--font-normal);
+  color: var(--text-primary);
+  background-color: var(--background-primary);
+  min-height: 100vh;
+}
+
+/* ==========================================
+ * TYPOGRAPHY
+ * ========================================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-semibold);
+  line-height: 1.2;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--text-4xl);
+  line-height: var(--leading-4xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+h2 {
+  font-size: var(--text-3xl);
+  line-height: var(--leading-3xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+h3 {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+  letter-spacing: var(--tracking-tight);
+}
+
+h4 {
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+}
+
+h5 {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+}
+
+h6 {
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+}
+
+p {
+  margin: 0;
+  max-width: 75ch; /* Optimal reading width */
+}
+
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+strong, b {
+  font-weight: var(--font-semibold);
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background-color: var(--background-tertiary);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+pre {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  background-color: var(--background-tertiary);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  line-height: 1.6;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+/* ==========================================
+ * LISTS
+ * ========================================== */
+
+ul, ol {
+  padding-left: var(--space-6);
+}
+
+li {
+  margin-bottom: var(--space-2);
+}
+
+li:last-child {
+  margin-bottom: 0;
+}
+
+/* ==========================================
+ * FORMS (Base Styles)
+ * ========================================== */
+
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Remove default number input spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ==========================================
+ * FOCUS STATES (Accessibility)
+ * ========================================== */
+
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* ==========================================
+ * SCROLLBARS (Dark Mode Styled)
+ * ========================================== */
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-emphasis);
+  border-radius: var(--radius-full);
+  border: 3px solid var(--background-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-emphasis) var(--background-primary);
+}
+
+/* ==========================================
+ * SELECTION
+ * ========================================== */
+
+::selection {
+  background-color: var(--accent-primary);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--accent-primary);
+  color: white;
+}
+
+/* ==========================================
+ * UTILITY CLASSES
+ * ========================================== */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 0 var(--space-6);
+  }
+}
+
+/* ==========================================
+ * LAYOUT HELPERS
+ * ========================================== */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stack-sm {
+  gap: var(--space-2);
+}
+
+.stack-lg {
+  gap: var(--space-6);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.cluster-sm {
+  gap: var(--space-2);
+}
+
+.cluster-lg {
+  gap: var(--space-6);
+}
+
+/* ==========================================
+ * RESPONSIVE UTILITIES
+ * ========================================== */
+
+@media (max-width: 639px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 640px) {
+  .show-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .hide-on-tablet {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hide-on-desktop {
+    display: none !important;
+  }
+}
+
+/* ==========================================
+ * ANIMATIONS
+ * ========================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================
+ * PRINT STYLES
+ * ========================================== */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+}

@@ -1,36 +1,33 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import "@/styles/themes.css";
-import { ThemeProvider } from "@/hooks/use-theme";
-import { LanguageProvider } from "@/components/language-provider";
-import SupabaseProvider from "@/components/supabase-provider";
-import { Toaster } from "@/components/ui/toaster";
+import "@/styles/globals.css";
+import { ToastProvider } from "@/components/ui";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "Vyxo Codex",
-  description: "Knowledge Management System",
-}
+  description: "Professional knowledge and competency management platform",
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider defaultTheme="light" role="operator">
-          <LanguageProvider>
-            <SupabaseProvider>
-              {children}
-              <Toaster />
-            </SupabaseProvider>
-          </LanguageProvider>
-        </ThemeProvider>
+    <html lang="en" suppressHydrationWarning className="dark">
+      <body className={inter.variable}>
+        <AuthProvider>
+          <ToastProvider>
+            {children}
+          </ToastProvider>
+        </AuthProvider>
       </body>
     </html>
-  )
+  );
 }
