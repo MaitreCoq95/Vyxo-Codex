@@ -1,6 +1,7 @@
-'use client';
-
 import * as React from 'react';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/infrastructure/supabase/server';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { PageHeader } from '@/components/layout/PageHeader';
 import {
@@ -21,114 +22,208 @@ import {
  * Design: Action-first, minimal text, clear priorities
  * ========================================== */
 
-export default function OperatorDashboardPage() {
-  // Mock data (replace with actual data fetching)
-  const user = {
-    name: 'John Doe',
-    email: 'john.doe@company.com',
-    notificationCount: 2,
-  };
+async function getOperatorDashboardData(userId: string) {
+  const supabase = createClient();
 
-  const priorityActions = [
-    {
-      id: 1,
-      type: 'warning' as const,
-      title: 'Complete "Hazmat Basics" Module',
-      description: 'Due in 3 days',
-      action: 'Continue →',
+  // Fetch user profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  // Fetch in-progress modules
+  const { data: inProgressModules } = await supabase
+    .from('user_progress')
+    .select(`
+      id,
+      score,
+      status,
+      module:modules (
+        id,
+        title,
+        total_questions
+      )
+    `)
+    .eq('user_id', userId)
+    .eq('status', 'in_progress')
+    .limit(3)
+    .order('updated_at', { ascending: false });
+
+  // Fetch pending practical validations
+  const { data: pendingValidations } = await supabase
+    .from('practical_validations')
+    .select(`
+      id,
+      type,
+      validation_status,
+      module:modules (
+        id,
+        title
+      )
+    `)
+    .eq('user_id', userId)
+    .eq('validation_status', 'pending')
+    .limit(2);
+
+  // Calculate weekly stats (last 7 days)
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const { data: weeklyCompletions, count: weeklyCount } = await supabase
+    .from('user_progress')
+    .select('id', { count: 'exact' })
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .gte('updated_at', weekAgo.toISOString());
+
+  // Calculate XP from XP events (if you have an xp_events table)
+  // For now, use a simple calculation based on completions
+  const weeklyXP = (weeklyCount || 0) * 50; // 50 XP per module
+
+  return {
+    profile,
+    inProgressModules: inProgressModules || [],
+    pendingValidations: pendingValidations || [],
+    weekStats: {
+      modulesCompleted: weeklyCount || 0,
+      xpEarned: weeklyXP,
+      streak: profile?.current_streak || 0,
     },
-    {
-      id: 2,
-      type: 'info' as const,
-      title: 'Validate forklift skill with manager',
-      description: 'Sarah Mills awaiting your evidence',
+  };
+}
+
+export default async function OperatorDashboardPage() {
+  const supabase = createClient();
+
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  // Fetch all data
+  const { profile, inProgressModules, pendingValidations, weekStats } =
+    await getOperatorDashboardData(user.id);
+
+  if (!profile) {
+    redirect('/setup');
+  }
+
+  // Build priority actions from real data
+  const priorityActions: Array<{
+    id: string | number;
+    type: 'warning' | 'info' | 'error';
+    title: string;
+    description: string;
+    action: string;
+    href?: string;
+  }> = [];
+
+  // Add pending validations
+  pendingValidations.forEach((validation) => {
+    priorityActions.push({
+      id: validation.id,
+      type: 'info',
+      title: `Upload evidence for "${validation.module?.title}"`,
+      description: 'Awaiting manager validation',
       action: 'Upload →',
-    },
-  ];
+      href: `/learning/${validation.module?.id}/validate`,
+    });
+  });
 
-  const learningProgress = [
-    {
-      id: 1,
-      title: 'Fire Safety Procedures',
-      progress: 75,
-      current: 6,
-      total: 8,
-    },
-    {
-      id: 2,
-      title: 'Loading Dock Operations',
-      progress: 40,
-      current: 2,
-      total: 5,
-    },
-  ];
-
-  const weekStats = {
-    modulesCompleted: 2,
-    xpEarned: 150,
-    streak: 5,
-  };
+  // Add in-progress modules that are close to completion
+  inProgressModules.forEach((progress) => {
+    if (progress.score >= 60) {
+      priorityActions.push({
+        id: progress.id,
+        type: 'warning',
+        title: `Complete "${progress.module?.title}" Module`,
+        description: `${progress.score}% complete - almost there!`,
+        action: 'Continue →',
+        href: `/learning/${progress.module?.id}`,
+      });
+    }
+  });
 
   return (
-    <DashboardShell role="operator" user={user}>
+    <DashboardShell role="operator">
       <PageHeader
-        title={`Hello, ${user.name.split(' ')[0]}`}
+        title={`Hello, ${profile.full_name.split(' ')[0]}`}
         description="Here's what needs your attention today"
       />
 
       <div className="space-y-6 p-4 mobile:p-6">
         {/* Priority Actions */}
-        <section>
-          <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-text-primary">
-            <span>🎯</span>
-            <span>Your Priority Actions</span>
-          </h2>
-          <div className="space-y-3">
-            {priorityActions.map((action) => (
-              <AlertCard
-                key={action.id}
-                variant={action.type}
-                title={action.title}
-                dismissible={false}
-              >
-                <div className="mt-2 flex items-center justify-between">
-                  <p className="text-sm">{action.description}</p>
-                  <Button size="sm" variant="ghost">
-                    {action.action}
-                  </Button>
-                </div>
-              </AlertCard>
-            ))}
-          </div>
-        </section>
+        {priorityActions.length > 0 && (
+          <section>
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-text-primary">
+              <span>🎯</span>
+              <span>Your Priority Actions</span>
+            </h2>
+            <div className="space-y-3">
+              {priorityActions.map((action) => (
+                <AlertCard
+                  key={action.id}
+                  variant={action.type}
+                  title={action.title}
+                  dismissible={false}
+                >
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-sm">{action.description}</p>
+                    {action.href ? (
+                      <Link href={action.href}>
+                        <Button size="sm" variant="ghost">
+                          {action.action}
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button size="sm" variant="ghost">
+                        {action.action}
+                      </Button>
+                    )}
+                  </div>
+                </AlertCard>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Learning in Progress */}
-        <section>
-          <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-text-primary">
-            <span>📚</span>
-            <span>Learning in Progress</span>
-          </h2>
-          <div className="space-y-4">
-            {learningProgress.map((module) => (
-              <Card key={module.id}>
-                <CardHeader>
-                  <CardTitle>{module.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <ProgressBar
-                    value={module.progress}
-                    fraction={{ current: module.current, total: module.total }}
-                    showLabel
-                    labelPosition="above"
-                  />
-                  <Button fullWidth variant="primary">
-                    Continue Module →
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
+        {inProgressModules.length > 0 && (
+          <section>
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold text-text-primary">
+              <span>📚</span>
+              <span>Learning in Progress</span>
+            </h2>
+            <div className="space-y-4">
+              {inProgressModules.map((progress) => (
+                <Card key={progress.id}>
+                  <CardHeader>
+                    <CardTitle>{progress.module?.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <ProgressBar
+                      value={progress.score}
+                      fraction={{
+                        current: Math.round((progress.score / 100) * (progress.module?.total_questions || 0)),
+                        total: progress.module?.total_questions || 0,
+                      }}
+                      showLabel
+                      labelPosition="above"
+                    />
+                    <Link href={`/learning/${progress.module?.id}`}>
+                      <Button fullWidth variant="primary">
+                        Continue Module →
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Weekly Progress */}
         <section>

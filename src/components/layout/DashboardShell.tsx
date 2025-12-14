@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { Header, Sidebar, BottomNav, MobileDrawer, type NavItem } from '@/components/ui';
+import { useAuthContext } from '@/components/providers/AuthProvider';
 import { cn } from '@/lib/utils';
 
 /* ==========================================
@@ -35,10 +36,18 @@ export interface DashboardShellProps {
 export const DashboardShell: React.FC<DashboardShellProps> = ({
   role,
   children,
-  user,
+  user: userProp,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
+  const auth = useAuthContext();
+
+  // Use provided user prop or fall back to auth context
+  const user = userProp || (auth.profile ? {
+    name: auth.profile.full_name,
+    email: auth.user?.email || '',
+    notificationCount: 0, // TODO: Fetch real notification count
+  } : undefined);
 
   // Role-based navigation items
   const navItems: Record<'operator' | 'manager' | 'director', NavItem[]> = {
